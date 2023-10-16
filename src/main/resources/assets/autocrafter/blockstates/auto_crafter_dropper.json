@@ -1,0 +1,48 @@
+{
+  "variants": {
+    "facing=down,crafting=false": {
+      "model": "autocrafter:block/auto_crafter_vertical",
+      "x": 180
+    },
+    "facing=down,crafting=true": {
+      "model": "autocrafter:block/auto_crafter_vertical_crafting",
+      "x": 180
+    },
+    "facing=east,crafting=false": {
+      "model": "autocrafter:block/auto_crafter_directional",
+      "y": 90
+    },
+    "facing=east,crafting=true": {
+      "model": "autocrafter:block/auto_crafter_directional_crafting",
+      "y": 90
+    },
+    "facing=north,crafting=false": {
+      "model": "autocrafter:block/auto_crafter_directional"
+    },
+    "facing=north,crafting=true": {
+      "model": "autocrafter:block/auto_crafter_directional_crafting"
+    },
+    "facing=south,crafting=false": {
+      "model": "autocrafter:block/auto_crafter_directional",
+      "y": 180
+    },
+    "facing=south,crafting=true": {
+      "model": "autocrafter:block/auto_crafter_directional_crafting",
+      "y": 180
+    },
+    "facing=up,crafting=false": {
+      "model": "autocrafter:block/auto_crafter_vertical"
+    },
+    "facing=up,crafting=true": {
+      "model": "autocrafter:block/auto_crafter_vertical_crafting"
+    },
+    "facing=west,crafting=false": {
+      "model": "autocrafter:block/auto_crafter_directional",
+      "y": 270
+    },
+    "facing=west,crafting=true": {
+      "model": "autocrafter:block/auto_crafter_directional_crafting",
+      "y": 270
+    }
+  }
+}

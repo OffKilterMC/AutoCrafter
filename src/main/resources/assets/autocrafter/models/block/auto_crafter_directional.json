@@ -1,0 +1,6 @@
+{
+  "parent": "autocrafter:block/auto_crafter_directional_base",
+  "textures": {
+    "front": "autocrafter:block/auto_crafter_directional_front"
+  }
+}

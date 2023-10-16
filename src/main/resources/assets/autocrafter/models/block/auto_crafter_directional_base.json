@@ -1,0 +1,19 @@
+{
+  "parent": "minecraft:block/cube",
+  "display": {
+    "firstperson_righthand": {
+      "rotation": [ 0, 135, 0 ],
+      "translation": [ 0, 0, 0 ],
+      "scale": [ 0.40, 0.40, 0.40 ]
+    }
+  },
+  "textures": {
+    "down": "autocrafter:block/auto_crafter_directional_bottom",
+    "east": "autocrafter:block/auto_crafter_directional_side",
+    "north": "#front",
+    "particle": "autocrafter:block/auto_crafter_directional_front",
+    "south": "autocrafter:block/auto_crafter_directional_back",
+    "up": "autocrafter:block/auto_crafter_top",
+    "west": "autocrafter:block/auto_crafter_directional_side"
+  }
+}

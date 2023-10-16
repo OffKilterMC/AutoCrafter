@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "autocrafter",
+  "version": "${version}",
+  "name": "AutoCrafter",
+  "description": "Craft items automatically using template items.",
+  "authors": ["OffKilterMC"],
+  "contact": {
+    "sources": "https://github.com/offkiltermc/AutoCrafter",
+    "issues": "https://github.com/offkiltermc/AutoCrafter/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/autocrafter/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "net.offkiltermc.autocrafter.client.AutoCrafterClient"
+      }
+    ],
+    "main": [
+      {
+        "adapter": "kotlin",
+        "value": "net.offkiltermc.autocrafter.AutoCrafter"
+      }
+    ]
+  },
+  "mixins": [
+    "autocrafter.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "~${minecraft_version}",
+    "fabric-language-kotlin": ">=1.8.3+kotlin.1.7.10"
+  }
+}

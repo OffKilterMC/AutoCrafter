@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "autocrafter",
+  "id": "craftomatic",
   "version": "${version}",
-  "name": "AutoCrafter",
+  "name": "Craftomatic",
   "description": "Craft items automatically using template items.",
   "authors": ["OffKilterMC"],
   "contact": {

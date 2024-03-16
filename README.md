@@ -1,4 +1,4 @@
-# AutoCrafter
+# Craftomatic
 
 Automatically crafts new items based on a template.
 

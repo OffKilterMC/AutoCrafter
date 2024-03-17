@@ -28,7 +28,7 @@ import kotlin.jvm.optionals.getOrNull
 
 
 class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDropperBehavior: Boolean) :
-    BaseContainerBlockEntity(AutoCrafter.AUTO_CRAFTER_BLOCK_ENTITY!!, pos, state), WorldlyContainer, AutoCrafterContainer {
+    BaseContainerBlockEntity(if (useDropperBehavior) { AutoCrafter.AUTO_CRAFTER_DROPPER_BLOCK_ENTITY!! } else { AutoCrafter.AUTO_CRAFTER_BLOCK_ENTITY!!}, pos, state), WorldlyContainer, AutoCrafterContainer {
     // slot 0 is where the result goes
     // slot 1 is where template item lives
     // slots 2-10 is where the recipe part/crafting grid lives
@@ -60,6 +60,8 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
         }
     }
 
+    private var inHopperRemoval = false
+
     private fun getRecipeIndex(): Int {
         val matches = recipeFinder.allRecipesForItem(items[TEMPLATE_SLOT])
         return matches.indices.find {
@@ -87,6 +89,14 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
         if (slot == RESULT_SLOT || slot == TEMPLATE_SLOT) {
             return false
         }
+
+        // If the result is non-empty, we cannot take new ingredients. We need to let the
+        // current recipe output finish first.
+        if (!items[RESULT_SLOT].isEmpty) {
+            //LOGGER.info("Result not empty, so not allowing item pulling")
+            return false
+        }
+
         val recipe = getCurrentRecipe() ?: return false
         //LOGGER.info("CANPLACEITEM slot $slot, recipe $recipe")
         val ghost = AutoCrafterGhostRecipe(recipe, FIRST_CRAFTING_SLOT, 3, 3)
@@ -128,11 +138,21 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
         }
     }
 
+    fun hopperRemovalStarted() {
+        //LOGGER.info("Hopper try remove START")
+        inHopperRemoval = true
+    }
+
+    fun hopperRemovalEnded() {
+        //LOGGER.info("Hopper try remove END")
+        inHopperRemoval = false
+    }
+
     fun itemRemovedByHopper(slot: Int) {
         if (slot == RESULT_SLOT) {
-            //LOGGER.info("A HOPPER TOOK MY RESULT!")
+            //LOGGER.info("Hopper removed a result item: ${items[RESULT_SLOT]}")
             craftingResultRemoved()
-            updateResultSlot(level!!)
+            //updateResultSlot(level!!)
         }
     }
 
@@ -163,7 +183,7 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
     }
 
     override fun setItem(slotNumber: Int, itemStack: ItemStack) {
-        //LOGGER.info("SETTING ITEM $slotNumber to $itemStack")
+        //LOGGER.info("[setItem] Setting item $slotNumber to $itemStack")
         items[slotNumber] = itemStack
 
         if (slotNumber == TEMPLATE_SLOT) {
@@ -178,9 +198,12 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
 
     override fun setChanged() {
         super.setChanged()
-        //LOGGER.info("CHANGED isClient: ${level!!.isClientSide}")
+        //LOGGER.info("[setChanged] isClient: ${level!!.isClientSide}")
 
-        updateResultSlot(level!!)
+        // Don't update the result when we are in the midst of hopper removal
+        if (!inHopperRemoval) {
+            updateResultSlot(level!!)
+        }
     }
 
     override fun stillValid(player: Player): Boolean {
@@ -188,7 +211,7 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
     }
 
     override fun getDefaultName(): Component {
-        return Component.literal("Auto Crafter")
+        return Component.translatable("gui.autocrafter.title")
     }
 
     override fun createMenu(i: Int, inventory: Inventory): AbstractContainerMenu {
@@ -200,7 +223,7 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
     }
 
     override fun craftingContainer(): CraftingContainer {
-        return ProxiedCraftingContainer(this, FIRST_CRAFTING_SLOT)
+        return ProxiedCraftingContainer(this, FIRST_CRAFTING_SLOT, if (useDropperBehavior) { null } else{ 1 })
     }
 
     override fun canPickup(slotNo: Int): Boolean {
@@ -247,7 +270,7 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
             return
         }
         var itemStack = ItemStack.EMPTY
-        val proxy = ProxiedCraftingContainer(this, FIRST_CRAFTING_SLOT)
+        val proxy = craftingContainer()
         val optional = level.server!!.recipeManager.getRecipeFor(RecipeType.CRAFTING, proxy, level)
         if (optional.isPresent) {
             val templateRecipe = getCurrentRecipe()
@@ -272,6 +295,7 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
             }
         }
 
+        //LOGGER.info("Updating result slot to $itemStack")
         setItem(RESULT_SLOT, itemStack)
         lastItemStack = itemStack.copy()
         resultWasJustSet = true
@@ -291,7 +315,7 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
     private fun updateGridAfterResultRemoval() {
         //LOGGER.info("Updating grid after result removal")
         lastItemStack = ItemStack.EMPTY
-        val proxy = ProxiedCraftingContainer(this, FIRST_CRAFTING_SLOT)
+        val proxy = craftingContainer()
 
         val nonNullList: NonNullList<ItemStack> = level!!.recipeManager
             .getRemainingItemsFor<CraftingContainer, CraftingRecipe>(
@@ -319,15 +343,15 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
                 continue
             }
 
-            // If we are here, something is not right.
-            //LOGGER.info("Item $i was not empty and we have a remaining item?")
+            // no place to put remaining items! put them in the overflow...
+            //LOGGER.info("[updateGridAfterResultRemoval] Adding $remainingItem to overflow")
+            items[i + FIRST_OVERFLOW_REMAINING_SLOT] = remainingItem
         }
     }
 
     fun getDispensableSlots(): List<Int> {
         val result = mutableListOf<Int>()
 
-        //LOGGER.info("getDispensableSlots: enter")
         // no recipe, no dispensing
         val recipe = getCurrentRecipe() ?: return result
 
@@ -346,17 +370,28 @@ class AutoCrafterBlockEntity(pos: BlockPos, state: BlockState, private val useDr
                 }
             }
         }
-        //LOGGER.info("getDispensableSlots: Returning $result")
+
+        // overflow
+        for (i in OVERFLOW_SLOTS) {
+            if (items[i].isEmpty.not()) {
+                result.add(i)
+            }
+        }
+
+        //LOGGER.info("[getDispensableSlots] Returning $result")
         return result
     }
 
     companion object {
         private const val FIRST_CRAFTING_SLOT = 2
         private const val LAST_CRAFTING_SLOT = 10
+        private const val FIRST_OVERFLOW_REMAINING_SLOT = 11
+        private const val LAST_OVERFLOW_REMAINING_SLOT = 19
         const val RESULT_SLOT = 0
         const val TEMPLATE_SLOT = 1
-        private const val CONTAINER_SIZE = 11 // grid + template + result
+        private const val CONTAINER_SIZE = 11 + 9 // grid + template + result + overflow
         private val CRAFTING_SLOTS = (FIRST_CRAFTING_SLOT..LAST_CRAFTING_SLOT).toList().toIntArray()
+        private val OVERFLOW_SLOTS = (FIRST_OVERFLOW_REMAINING_SLOT.. LAST_OVERFLOW_REMAINING_SLOT).toList().toIntArray()
         private val LOGGER = LogUtils.getLogger()
     }
 }

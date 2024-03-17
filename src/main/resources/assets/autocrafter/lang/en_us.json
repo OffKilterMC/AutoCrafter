@@ -1,4 +1,5 @@
 {
   "block.autocrafter.auto_crafter": "Auto-Crafter (Passive)",
-  "block.autocrafter.auto_crafter_dropper": "Auto-Crafter (Dropper)"
+  "block.autocrafter.auto_crafter_dropper": "Auto-Crafter (Dropper)",
+  "gui.autocrafter.title": "Auto Crafter"
 }

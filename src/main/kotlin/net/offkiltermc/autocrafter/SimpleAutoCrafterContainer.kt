@@ -7,35 +7,14 @@ import net.minecraft.world.item.crafting.RecipeHolder
 import net.minecraft.world.item.crafting.RecipeType
 import net.minecraft.world.level.Level
 
-class SimpleAutoCrafterContainer(private val level: Level): SimpleContainer(11), AutoCrafterContainer {
+class SimpleAutoCrafterContainer(private val level: Level, private val stackSizeLimit: Int?): SimpleContainer(11), AutoCrafterContainer {
 
     override fun craftingContainer(): ProxiedCraftingContainer {
-        return ProxiedCraftingContainer(this, 2)
+        return ProxiedCraftingContainer(this, 2, stackSizeLimit)
     }
 
     override fun canPickup(slotNo: Int): Boolean {
         return true
-    }
-
-    private fun getRecipe(): RecipeHolder<*>? {
-        val itemStack = getItem(1)
-        if (itemStack.isEmpty) {
-            return null
-        } else {
-            return level.let {
-                return it.recipeManager.getAllRecipesFor(RecipeType.CRAFTING).find { item ->
-                    item.value.getResultItem(it.registryAccess()).`is`(itemStack.item)
-                }
-            }
-        }
-    }
-
-    override fun setItem(i: Int, itemStack: ItemStack) {
-        super.setItem(i, itemStack)
-
-        if (i == 1) {
-            // set recipe here
-        }
     }
 
     override fun canAddItem(itemStack: ItemStack): Boolean {

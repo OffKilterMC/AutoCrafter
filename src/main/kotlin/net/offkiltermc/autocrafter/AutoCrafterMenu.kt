@@ -22,20 +22,22 @@ class AutoCrafterMenu(
     private val player: Player = inventory.player
     private val recipeFinder = CachedRecipeFinder(player.level())
 
-    constructor(i: Int, inventory: Inventory) : this(
+    constructor(i: Int, inventory: Inventory, passive: Boolean) : this(
         i,
         inventory,
-        SimpleAutoCrafterContainer(inventory.player.level()),
+        SimpleAutoCrafterContainer(inventory.player.level(), if (passive) { 1 } else { null }),
         ContainerLevelAccess.NULL,
         SimpleContainerData(1)
     )
 
     init {
+        val craftingContainer = container.craftingContainer()
+
         // Result slot
         addSlot(
             AutoCrafterResultSlot(
                 inventory.player,
-                container.craftingContainer(),
+                craftingContainer,
                 container,
                 RESULT_SLOT,
                 RESULT_SLOT_X,
@@ -56,8 +58,8 @@ class AutoCrafterMenu(
             for (col in 0..2) {
                 addSlot(
                     Slot(
-                        container,
-                        2 + (col + row * 3),
+                        craftingContainer,
+                        (col + row * 3),
                         GRID_X + col * GRID_SPACING,
                         GRID_Y + row * GRID_SPACING
                     )

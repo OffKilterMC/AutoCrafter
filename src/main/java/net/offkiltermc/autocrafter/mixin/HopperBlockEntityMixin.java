@@ -19,6 +19,14 @@ public class HopperBlockEntityMixin {
                 // tell the container that we removed an item via hopper
                 ((AutoCrafterBlockEntity)container).itemRemovedByHopper(i);
             }
+            ((AutoCrafterBlockEntity)container).hopperRemovalEnded();
+        }
+    }
+    @Inject(method="tryTakeInItemFromSlot", at=@At("HEAD"))
+    private static void onTryTakeInItem2(Hopper hopper, Container container, int i, Direction direction, CallbackInfoReturnable<Boolean> cir) {
+        if (container instanceof AutoCrafterBlockEntity) {
+            // tell the container that we are looking to remove an item via hopper
+            ((AutoCrafterBlockEntity)container).hopperRemovalStarted();
         }
     }
 }

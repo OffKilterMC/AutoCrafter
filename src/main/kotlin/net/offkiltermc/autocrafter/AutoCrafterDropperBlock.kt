@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.level.block.state.properties.DirectionProperty
-import net.offkiltermc.autocrafter.AutoCrafter.Companion.AUTO_CRAFTER_BLOCK_ENTITY
 
 
 class AutoCrafterDropperBlock(properties: Properties) : AutoCrafterBlock(properties) {
@@ -115,9 +114,9 @@ class AutoCrafterDropperBlock(properties: Properties) : AutoCrafterBlock(propert
 
 
     private fun dispenseFrom(serverLevel: ServerLevel, blockState: BlockState, blockPos: BlockPos) {
-        //LOGGER.info("Attempting to dispense...")
+        //LOGGER.info("[dispenseFrom] Attempting to dispense...")
         val blockEntity: AutoCrafterBlockEntity? =
-            serverLevel.getBlockEntity(blockPos, AUTO_CRAFTER_BLOCK_ENTITY!!).orElse(null)
+            serverLevel.getBlockEntity(blockPos, AutoCrafter.AUTO_CRAFTER_DROPPER_BLOCK_ENTITY!!).orElse(null)
         if (blockEntity == null) {
             LOGGER.warn(
                 "Ignoring dispensing attempt for AutoCrafter without matching block entity at $blockPos"
@@ -159,6 +158,8 @@ class AutoCrafterDropperBlock(properties: Properties) : AutoCrafterBlock(propert
         serverLevel: ServerLevel,
         container: Container?
     ): Boolean {
+        //LOGGER.info("[DispenseOne] enter")
+
         // no point in animating if we are pointed at a container
         if (container == null) {
             openMouth(serverLevel, blockPos, blockState)
@@ -166,21 +167,18 @@ class AutoCrafterDropperBlock(properties: Properties) : AutoCrafterBlock(propert
 
         // Don't allow mutation of the one the entity holds. It will confuse things.
         // The setItem below needs to see a change.
-        val itemStack = blockEntity.getItem(slot).copy()
-        val remaining = dispenseOneCore(blockEntity, itemStack, direction, blockSource, container)
-        return if (remaining.isEmpty) {
+        val itemStack = blockEntity.getItem(slot)
+        val remaining = dispenseOneCore(blockEntity, itemStack.copy(), direction, blockSource, container)
+        return if (remaining.count != itemStack.count) {
             // item was consumed...
-            itemStack.shrink(1)
-            blockEntity.setItem(slot, itemStack)
+            //LOGGER.info("[DispenseOne] item was consumed new stack is $itemStack")
+            blockEntity.setItem(slot, remaining)
             true
         } else {
             false
         }
     }
 
-    // Does the low-level dispensing or moving into a container. We only pass one item
-    // into the appropriate function from a copy (i.e. we do not mutate the input stack
-    // at all). Returns empty itemStack if the item was successfully consumed.
     private fun dispenseOneCore(
         blockEntity: AutoCrafterBlockEntity,
         itemStack: ItemStack,
@@ -188,15 +186,23 @@ class AutoCrafterDropperBlock(properties: Properties) : AutoCrafterBlock(propert
         blockSource: GenericBlockSource<AutoCrafterBlockEntity>,
         container: Container?
     ): ItemStack {
-        return if (container == null) {
-            DISPENSE_BEHAVIOUR.dispense(blockSource, itemStack.copy().split(1))
+        if (container == null) {
+            return DISPENSE_BEHAVIOUR.dispense(blockSource, itemStack)
         } else {
-            HopperBlockEntity.addItem(
+            val result = HopperBlockEntity.addItem(
                 blockEntity,
                 container,
-                itemStack.copy().split(1),
+                itemStack,
                 direction.opposite
             )
+
+            // If the hopper is full, just spew items. This seems to be what
+            // vanilla crafter does...
+            return if (result.isEmpty.not()) {
+                DISPENSE_BEHAVIOUR.dispense(blockSource, result)
+            } else {
+                result
+            }
         }
     }
 

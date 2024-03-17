@@ -50,6 +50,11 @@ class AutoCrafter : ModInitializer {
             ResourceLocation("autocrafter", "auto_crafter"),
             AUTO_CRAFTER_MENU
         )
+        Registry.register(
+            BuiltInRegistries.MENU,
+            ResourceLocation("autocrafter", "auto_crafter_dropper"),
+            AUTO_CRAFTER_DROPPER_MENU
+        )
         AUTO_CRAFTER_BLOCK_ENTITY = Registry.register(
             BuiltInRegistries.BLOCK_ENTITY_TYPE,
             ResourceLocation("autocrafter", "auto_crafter"),
@@ -66,7 +71,7 @@ class AutoCrafter : ModInitializer {
                 AutoCrafterBlockEntity(
                     pos!!, state!!, true
                 )
-            }, AUTO_CRAFTER_BLOCK).build(null)
+            }, AUTO_CRAFTER_DROPPER_BLOCK).build(null)
         )
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.REDSTONE_BLOCKS)
             .register(ModifyEntries { content: FabricItemGroupEntries ->
@@ -93,6 +98,8 @@ class AutoCrafter : ModInitializer {
         var AUTO_CRAFTER_BLOCK_ENTITY: BlockEntityType<AutoCrafterBlockEntity>? = null
         var AUTO_CRAFTER_DROPPER_BLOCK_ENTITY: BlockEntityType<AutoCrafterBlockEntity>? = null
         val AUTO_CRAFTER_MENU =
-            MenuType({ i: Int, inventory: Inventory -> AutoCrafterMenu(i, inventory) }, FeatureFlags.VANILLA_SET)
+            MenuType({ i: Int, inventory: Inventory -> AutoCrafterMenu(i, inventory, true) }, FeatureFlags.VANILLA_SET)
+        val AUTO_CRAFTER_DROPPER_MENU =
+            MenuType({ i: Int, inventory: Inventory -> AutoCrafterMenu(i, inventory, false) }, FeatureFlags.VANILLA_SET)
     }
 }

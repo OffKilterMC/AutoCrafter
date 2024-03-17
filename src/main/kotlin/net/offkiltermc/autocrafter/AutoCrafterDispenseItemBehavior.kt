@@ -30,9 +30,9 @@ class AutoCrafterDispenseItemBehavior {
     private fun execute(blockSource: GenericBlockSource<AutoCrafterBlockEntity>, itemStack: ItemStack): ItemStack {
         val direction = blockSource.state.getValue(AutoCrafterDropperBlock.FACING)
         val position = getDispensePosition(blockSource)
-        val itemStack2 = itemStack.split(1)
+        val itemStack2 = itemStack.copy()
         spawnItem(blockSource.level, itemStack2, 6, direction, position)
-        return itemStack
+        return ItemStack.EMPTY
     }
 
     private fun playSound(blockSource: GenericBlockSource<AutoCrafterBlockEntity>) {

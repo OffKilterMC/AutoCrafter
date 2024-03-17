@@ -6,6 +6,8 @@ NOTE: This is beta and we are experimenting with two types of crafters: a passiv
 put a hopper under to collect items, and an active one which behaves like a dropper, like the upcoming
 vanilla Crafter block. It's unclear whether we'll keep both.
 
+**If you previously used this mod and used the Dropper variant in 1.0b1, you should mine and replace the block.**
+
 This block allows you to automatically craft items. You place an item into the left slot, and the grid will
 update to show you the items it needs to craft it. If multiple items could be used (as in the case of dyes),
 arrows will appear above and below the template item to allow you to choose the specific recipe you want. You
@@ -60,3 +62,5 @@ is used instead.
 
 ![Crafting Screenshots](https://i.imgur.com/DQ0Bn25.png)
 
+# Known Issues
+- Using passive mode, if you keep adding ingredients while the table is still outputting the result from a previous crafting recipe, items will be lost. Using hoppers does not have this issue.

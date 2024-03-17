@@ -6,10 +6,18 @@ import net.minecraft.world.entity.player.StackedContents
 import net.minecraft.world.inventory.CraftingContainer
 import net.minecraft.world.item.ItemStack
 
-class ProxiedCraftingContainer(private val owner: Container, private val startIndex: Int): CraftingContainer {
+class ProxiedCraftingContainer(private val owner: Container,
+                               private val startIndex: Int,
+                               private val stackSizeLimit: Int?): CraftingContainer {
     override fun clearContent() {
         for (idx in startIndex until startIndex+9) {
             owner.setItem(idx, ItemStack.EMPTY)
+        }
+    }
+
+    override fun getMaxStackSize(): Int {
+        return stackSizeLimit ?: run {
+            super.getMaxStackSize()
         }
     }
 
